@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beneath the Surface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg-dark: #0a0e14;
+      --color-bg-mid: #0d1319;
+      --color-bg-card: rgba(15, 22, 32, 0.65);
+      --color-border: rgba(80, 130, 180, 0.25);
+      --color-text: #e8eef4;
+      --color-text-dim: rgba(200, 215, 235, 0.85);
+      --color-accent: #50c8e8;
+      --color-glow: rgba(80, 200, 232, 0.4);
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--color-text);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Atmospheric background overlay */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 80% 50% at 50% 100%,
+        rgba(30, 55, 85, 0.25) 0%,
+        transparent 60%
+      );
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    #start-screen {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .title {
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 40px var(--color-glow), 0 0 80px rgba(80, 200, 232, 0.2);
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: clamp(0.7rem, 2.2vw, 0.95rem);
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--color-text-dim);
+      margin-bottom: 1rem;
+    }
+
+    /* Frosted glass controls card */
+    .controls-card {
+      background: var(--color-bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.75rem 2.5rem;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .controls-card h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1.25rem;
+    }
+
+    .controls-list {
+      list-style: none;
+      text-align: left;
+      font-size: 0.9rem;
+      line-height: 2;
+      color: var(--color-text-dim);
+    }
+
+    .controls-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .controls-list kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.6em;
+      padding: 0.15em 0.4em;
+      font-family: inherit;
+      font-size: 0.85em;
+      background: rgba(80, 130, 180, 0.2);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+    }
+
+    .controls-card .footer-text {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: rgba(180, 200, 225, 0.7);
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-style: italic;
+    }
+
+    /* CTA with pulse animation */
+    .cta {
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      color: var(--color-accent);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    /* Footer */
+    .game-footer {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: rgba(160, 180, 210, 0.5);
+      z-index: 1;
+    }
+
+    /* In-game controls HUD (overlays canvas) */
+    #hud-controls {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.5rem;
+      padding: 0.75rem 1.1rem;
+      border-radius: 10px;
+      background: rgba(3, 8, 18, 0.35);
+      border: 1px solid rgba(80, 200, 232, 0.35);
+      font-weight: 900;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #eaf9ff;
+      text-align: right;
+      text-shadow:
+        0 0 12px rgba(80, 200, 232, 0.9),
+        0 0 22px rgba(0, 0, 0, 0.9);
+      z-index: 120;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+    }
+
+    #hud-controls.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #hud-controls .hud-row {
+      white-space: nowrap;
+    }
+
+    #hud-controls .hud-row + .hud-row {
+      margin-top: 0.25rem;
+    }
+
+    /* End-game / level complete overlay */
+    .end-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(3, 7, 16, 0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 130;
+      color: var(--color-text);
+    }
+
+    .end-screen.hidden {
+      display: none;
+    }
+
+    .end-card {
+      background: rgba(10, 16, 28, 0.92);
+      border-radius: 14px;
+      padding: 2.2rem 2.6rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(80, 130, 180, 0.45);
+      text-align: center;
+      min-width: 320px;
+      max-width: 420px;
+    }
+
+    .end-card h2 {
+      font-size: 1.3rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(80, 200, 232, 0.7);
+    }
+
+    .end-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-dim);
+      margin-bottom: 1.6rem;
+    }
+
+    .end-actions {
+      display: flex;
+      gap: 0.9rem;
+      justify-content: center;
+    }
+
+    .btn-ghost {
+      padding: 0.7rem 1.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(80, 200, 232, 0.7);
+      background: radial-gradient(circle at top left, rgba(80, 200, 232, 0.22), rgba(5, 10, 20, 0.96));
+      color: #eaf9ff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition:
+        background 0.2s ease-out,
+        transform 0.16s ease-out,
+        box-shadow 0.2s ease-out,
+        border-color 0.2s ease-out;
+    }
+
+    .btn-ghost.secondary {
+      border-color: rgba(150, 170, 200, 0.7);
+      background: radial-gradient(circle at top left, rgba(150, 170, 200, 0.18), rgba(4, 8, 16, 0.96));
+      color: rgba(210, 220, 240, 0.92);
+    }
+
+    .btn-ghost:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 25px rgba(80, 200, 232, 0.7);
+      background: radial-gradient(circle at top left, rgba(80, 200, 232, 0.34), rgba(8, 16, 28, 0.98));
+    }
+
+    .btn-ghost.secondary:hover {
+      box-shadow: 0 0 22px rgba(150, 170, 200, 0.8);
+      background: radial-gradient(circle at top left, rgba(180, 200, 230, 0.3), rgba(8, 16, 28, 0.98));
+    }
+
+    /* Fade overlay */
+    #fade-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity 0.8s ease-out;
+    }
+
+    #fade-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #fade-overlay.reveal {
+      opacity: 0;
+      pointer-events: none;
+      transition-duration: 0.7s;
+    }
+
+    /* Game canvas - hidden until game starts */
+    #game-canvas {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      width: 100%;
+      height: 100%;
+    }
+
+    #game-canvas.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body style="background-image: linear-gradient(rgba(10, 15, 25, 0.7), rgba(10, 15, 25, 0.8)), url('assets/background/background.bg.png'); background-size: cover; background-position: center; background-repeat: no-repeat; height: 100vh; width: 100vw;">
+  <!-- To check if the background image is loading, open your browser DevTools (F12), go to the Network tab, reload the page, and look for 404 errors for assets/background/background.bg.png, or check the Console tab for related error messages. -->
+  <div id="start-screen">
+    <h1 class="title">Beneath the Surface</h1>
+    <p class="subtitle">An Underground Factory Descent</p>
+
+    <div class="controls-card">
+      <h2>Controls & Mechanics</h2>
+      <ul class="controls-list">
+        <li><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Arrow Keys — Move</li>
+        <li><kbd>X</kbd> Jump | Wall-jump on walls!</li>
+        <li><kbd>Z</kbd> Attack</li>
+        <li><kbd>C</kbd> Dash (Unlock by going deeper)</li>
+      </ul>
+      <p class="footer-text">Abilities unlock as you fall. The darkness grows deeper.</p>
+    </div>
+
+    <p class="cta">▶ Press Enter to Begin Your Descent</p>
+  </div>
+
+  <footer class="game-footer">A Web-Game by <span style="color:red; font-weight: bolder;">RED </span><span style="color:WHite">HATS</span></footer>
+
+  <div id="fade-overlay" aria-hidden="true"></div>
+  <canvas id="game-canvas" aria-hidden="true"></canvas>
+
+  <div id="hud-controls" aria-hidden="true">
+    <div class="hud-row">[ ↑ ] [ ↓ ] [ ← ] [ → ] MOVE</div>
+    <div class="hud-row">[ X ] JUMP / WALL-JUMP</div>
+    <div class="hud-row">[ Z ] ATTACK</div>
+    <div class="hud-row">[ C ] DASH</div>
+  </div>
+
+  <div id="end-screen" class="end-screen hidden" aria-hidden="true">
+    <div class="end-card">
+      <h2 id="end-title">YOU DIED</h2>
+      <p id="end-subtitle">Press a button below to continue.</p>
+      <div class="end-actions">
+        <button id="btn-retry" class="btn-ghost">RETRY LEVEL</button>
+        <button id="btn-main-menu" class="btn-ghost secondary">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLevel = 1;
+
+    function loadLevel(levelNumber) {
+      currentLevel = levelNumber;
+      console.log("[Game] loadLevel placeholder called with level", levelNumber);
+      // TODO: Wire this into your Kaboom scenes (room1, room2, etc.) to load specific layouts.
+    }
+
+    const hudControlsEl = document.getElementById('hud-controls');
+    const endScreenEl = document.getElementById('end-screen');
+    const endTitleEl = document.getElementById('end-title');
+    const endSubtitleEl = document.getElementById('end-subtitle');
+    const retryBtn = document.getElementById('btn-retry');
+    const mainMenuBtn = document.getElementById('btn-main-menu');
+
+    function showHUD() {
+      if (!hudControlsEl) return;
+      hudControlsEl.classList.add('visible');
+      hudControlsEl.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideHUD() {
+      if (!hudControlsEl) return;
+      hudControlsEl.classList.remove('visible');
+      hudControlsEl.setAttribute('aria-hidden', 'true');
+    }
+
+    function showEndScreen(isVictory) {
+      if (!endScreenEl) return;
+      const title = isVictory ? "LEVEL COMPLETE" : "YOU DIED";
+      const subtitle = isVictory
+        ? "You reached the end of this descent. Continue or return to the surface."
+        : "The factory claimed another explorer. Retry the descent or return to the surface.";
+
+      if (endTitleEl) endTitleEl.textContent = title;
+      if (endSubtitleEl) endSubtitleEl.textContent = subtitle;
+
+      endScreenEl.classList.remove('hidden');
+      endScreenEl.setAttribute('aria-hidden', 'false');
+      hideHUD();
+    }
+
+    function hideEndScreen() {
+      if (!endScreenEl) return;
+      endScreenEl.classList.add('hidden');
+      endScreenEl.setAttribute('aria-hidden', 'true');
+    }
+
+    // Expose to Kaboom scenes so they can call window.showEndScreen(true/false)
+    window.showEndScreen = showEndScreen;
+
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        hideEndScreen();
+        // Placeholder: reload current level via loadLevel()
+        loadLevel(currentLevel);
+        // For now, fully reset the game state
+        window.location.reload();
+      });
+    }
+
+    if (mainMenuBtn) {
+      mainMenuBtn.addEventListener('click', () => {
+        // Return to the original HTML start screen and reset everything
+        window.location.reload();
+      });
+    }
+
+    /**
+     * Start Screen Module
+     * Modular API for connecting your game engine.
+     * Implement startGame() to initialize your game when the user presses Enter.
+     */
+
+    const startScreen = (function () {
+      const overlay = document.getElementById('fade-overlay');
+      const startScreenEl = document.getElementById('start-screen');
+      const gameCanvas = document.getElementById('game-canvas');
+
+      let _hasStarted = false;
+
+      function fadeOut() {
+        overlay.classList.add('active');
+      }
+
+      function onFadeComplete() {
+        if (_hasStarted) return;
+        _hasStarted = true;
+
+        // Hide start screen so it no longer blocks interactions
+        startScreenEl.style.display = 'none';
+
+        // Reveal the game canvas
+        gameCanvas.classList.add('visible');
+
+        // Show the in-game HUD when the game is visible
+        showHUD();
+
+        // Add your game initialization code here (e.g. load game engine, start render loop)
+        startGame();
+
+        console.log('Game Started');
+        window.dispatchEvent(new CustomEvent('gameStart'));
+      }
+
+      function handleKeydown(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (_hasStarted) return;
+
+        // Remove listener to prevent repeat triggers
+        document.removeEventListener('keydown', handleKeydown);
+
+        fadeOut();
+        setTimeout(onFadeComplete, 850);
+      }
+
+      function init() {
+        document.addEventListener('keydown', handleKeydown);
+
+        overlay.addEventListener('transitionend', function () {
+          if (overlay.classList.contains('active') && !_hasStarted) {
+            onFadeComplete();
+          }
+        });
+      }
+
+      return {
+        init,
+        get gameCanvas() {
+          return gameCanvas;
+        },
+      };
+    })();
+
+    /**
+     * Add your game's initialization code here.
+     * This is called once the fade-out is complete and the canvas is revealed.
+     */
+    function startGame() {
+      window.__FROM_START_SCREEN = true;
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = './src/main.js';
+      document.body.appendChild(script);
+      // Fade in the game once it has time to load
+      setTimeout(function () {
+        document.getElementById('fade-overlay').classList.add('reveal');
+      }, 1400);
+    }
+
+    startScreen.init();
+  </script>
+</body>
+</html>
